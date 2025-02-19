@@ -8,7 +8,7 @@ Physics-Informed Neural Networks (PINNs) have emerged as powerful tools for solv
 - [0] Qian  Zhang,  Chenxi  Wu,  Adar  Kahana,  Youngeun  Kim,  Yuhang  Li,  George  Em  Kar-niadakis,  and  Priyadarshini  Panda.   Artificial  to  spiking  neural  networks  conversion  forscientific machine learning, 2023
 - [2] Yuhang Li, Shikuang Deng, Xin Dong, and Shi Gu.  Converting artificial neural networksto spiking neural networks via parameter calibration, 2022
 - [3] Khemraj  Shukla,  Juan  Diego  Toscano,  Zhicheng  Wang,  Zongren  Zou,  and  George  EmKarniadakis.  A comprehensive and fair comparison between mlp and kan representationsfor differential equations and operator networks, 2024
-- [4] [https://github.com/KindXiaoming/pykan](https://github.com/NeuromorphicProcessorProject/snn_toolbox)
+- [4] [https://github.com/NeuromorphicProcessorProject/snn_toolbox)](https://github.com/NeuromorphicProcessorProject/snn_toolbox)
 - [5] https://github.com/KindXiaoming/pykan
 - [6] https://github.com/Blealtan/efficient-kan
 
