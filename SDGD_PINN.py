@@ -5,7 +5,8 @@ import argparse
 from tqdm import tqdm
 import pandas as pd
 
-parser = argparse.ArgumentParser(description='PINN Training')
+parser = argparse.ArgumentParser(description='SDGD_PINN Training')
+parser.add_argument('--Name', type=str, default='SDGD_PINN')
 parser.add_argument('--SEED', type=int, default=0)
 parser.add_argument('--dim', type=int, default=10) # dimension of the problem.
 parser.add_argument('--dataset', type=str, default="Poisson")
@@ -20,7 +21,7 @@ parser.add_argument('--N_f', type=int, default=int(100)) # num of residual point
 parser.add_argument('--N_test', type=int, default=int(20000)) # num of test points
 parser.add_argument('--x_radius', type=float, default=1)
 parser.add_argument('--method', type=int, default=3)
-parser.add_argument('--batch_size', type=int, default=4)
+parser.add_argument('--batch_size', type=int, default=1)
 args = parser.parse_args()
 print(args)
 
@@ -212,8 +213,8 @@ if args.save_loss:
     info_dict = {"loss": model.saved_loss, "L2": model.saved_l2[:, 0], "L1": model.saved_l2[:, 1]}
     df = pd.DataFrame(data=info_dict, index=None)
     df.to_excel(
-        "saved_loss_l2/"+args.dataset+"_dim="+str(args.dim)+\
+        "saved_loss_l2/"+args.Name+"_"+args.dataset+"_dim="+str(args.dim)+\
             "_batch="+str(args.batch_size)+"_N_f="+str(args.N_f)\
-            +"_method="+str(args.method)+"_SEED="+str(args.SEED)+".xlsx",
+            +"_method="+str(args.method)+"_SEED="+str(args.SEED)+"_Num_params="+str(model.num_params())+".xlsx",
         index=False
     )
