@@ -8,7 +8,7 @@ import pandas as pd
 parser = argparse.ArgumentParser(description='SDGD_PINN Training')
 parser.add_argument('--Name', type=str, default='SDGD_PINN')
 parser.add_argument('--SEED', type=int, default=0)
-parser.add_argument('--dim', type=int, default=10) # dimension of the problem.
+parser.add_argument('--dim', type=int, default=15) # dimension of the problem.
 parser.add_argument('--dataset', type=str, default="Poisson")
 parser.add_argument('--device', type=str, default="cuda")
 parser.add_argument('--epochs', type=int, default=1000) # Adam epochs
@@ -17,11 +17,11 @@ parser.add_argument('--PINN_h', type=int, default=128) # width of PINN
 parser.add_argument('--PINN_L', type=int, default=4) # depth of PINN
 parser.add_argument('--save_loss', type=bool, default=True) # save the optimization trajectory?
 parser.add_argument('--use_sch', type=int, default=1) # use scheduler?
-parser.add_argument('--N_f', type=int, default=int(100)) # num of residual points
+parser.add_argument('--N_f', type=int, default=int(200)) # num of residual points
 parser.add_argument('--N_test', type=int, default=int(20000)) # num of test points
 parser.add_argument('--x_radius', type=float, default=1)
 parser.add_argument('--method', type=int, default=3)
-parser.add_argument('--batch_size', type=int, default=1)
+parser.add_argument('--batch_size', type=int, default=5)
 args = parser.parse_args()
 print(args)
 

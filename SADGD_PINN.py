@@ -7,6 +7,7 @@ import pandas as pd
 import copy
 
 parser = argparse.ArgumentParser(description='PINN Training')
+parser.add_argument('--Name', type=str, default='SADGD_PINN')
 parser.add_argument('--SEED', type=int, default=0)
 parser.add_argument('--dim', type=int, default=10) # dimension of the problem.
 parser.add_argument('--dataset', type=str, default="Poisson")
@@ -16,8 +17,8 @@ parser.add_argument('--lr', type=float, default=1e-3) # Adam lr
 parser.add_argument('--PINN_h', type=int, default=128) # width of PINN
 parser.add_argument('--PINN_L', type=int, default=4) # depth of PINN
 parser.add_argument('--save_loss', type=bool, default=True) # save the optimization trajectory?
-parser.add_argument('--use_sch', type=int, default=1) # use scheduler?
-parser.add_argument('--N_f', type=int, default=int(100)) # num of residual points
+parser.add_argument('--use_sch', type=int, default=0) # use scheduler?
+parser.add_argument('--N_f', type=int, default=int(200)) # num of residual points
 parser.add_argument('--N_test', type=int, default=int(20000)) # num of test points
 parser.add_argument('--x_radius', type=float, default=1)
 parser.add_argument('--method', type=int, default=3)
@@ -54,6 +55,11 @@ x, u = load_data_TwoBody_Poisson(d=args.dim)
 print(x.shape, u.shape)
 print(u.mean(), u.std())
 
+def initialize_para(nn, val):
+    for para in nn.parameters():
+        para.data.fill_(val)
+    return nn
+    
 class MLP(nn.Module):
     def __init__(self, layers:list):
         super(MLP, self).__init__()
@@ -185,10 +191,7 @@ class PINN:
         saeved_loss = loss
         return loss, saeved_loss, idx[0]
     
-    def initialize_para(self,nn, val):
-        for para in nn.parameters():
-            para.data.fill_(val)
-        return nn
+
     
 
     def train_adam(self):
@@ -203,8 +206,8 @@ class PINN:
         
         #mean_grad = self.initialize_para(copy.deepcopy(self.u_net), 0)
         #prev_stoc_grad = [self.initialize_para(copy.deepcopy(self.u_net), 0) for i in range(args.dim)]#list of nets (one for each dimension)
-        mean_grad = [param.grad.clone() for param in self.u_net.parameters()]
-        prev_stoc_grad = [[torch.zeros( for param in self.u_net.parameters()] for _ in range(args.dim)]#list of nets (one for each dimension)
+        mean_grad = initialize_para(copy.deepcopy(self.u_net), 0)#Simple net
+        prev_stoc_grad = [initialize_para(copy.deepcopy(self.u_net), 0) for i in range(args.dim)]#list of nets (one for each sample)
         #print(prev_stoc_grad[0][0])
         for n in tqdm(range(self.epoch)):
             self.Resample()
@@ -218,13 +221,13 @@ class PINN:
             
             loss.backward()
             
+            
             # backprop
-            with torch.no_grad():
-                for para, para_prev, para_mean in zip(self.u_net.parameters(), prev_stoc_grad[idx], mean_grad):
-                    saga_update = para.grad - para_prev + para_mean
-                    para_mean += (1./args.dim) * (para.grad - para_prev) #update mean
-                    para_prev = para.grad.clone() # update previous grad
-                    para.grad.copy_(saga_update)
+            for para, para_prev, para_mean in zip(self.u_net.parameters(), prev_stoc_grad[idx].parameters(), mean_grad.parameters()):
+                saga_update = para.grad.data - para_prev.data + para_mean.data
+                para_mean.data += (1./args.dim) * (para.grad.data - para_prev.data) #update mean
+                para_prev.data = para.grad.data.clone() # update previous grad
+                para.grad = saga_update.clone()
             
             
             
@@ -267,8 +270,8 @@ if args.save_loss:
     info_dict = {"loss": model.saved_loss, "L2": model.saved_l2[:, 0], "L1": model.saved_l2[:, 1]}
     df = pd.DataFrame(data=info_dict, index=None)
     df.to_excel(
-        "saved_loss_l2/"+args.dataset+"_dim="+str(args.dim)+\
+        "saved_loss_l2/"+args.Name+"_"+args.dataset+"_dim="+str(args.dim)+\
             "_batch="+str(args.batch_size)+"_N_f="+str(args.N_f)\
-            +"_method="+str(args.method)+"_SEED="+str(args.SEED)+".xlsx",
+            +"_method="+str(args.method)+"_SEED="+str(args.SEED)+"_Num_params="+str(model.num_params())+".xlsx",
         index=False
     )

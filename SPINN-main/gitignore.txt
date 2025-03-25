@@ -1,0 +1,4 @@
+*.csv
+*.xlsx
+/saved_loss_l2
+/results

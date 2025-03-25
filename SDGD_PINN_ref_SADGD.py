@@ -5,8 +5,8 @@ import argparse
 from tqdm import tqdm
 import pandas as pd
 
-parser = argparse.ArgumentParser(description='SAGD_PINN Training')
-parser.add_argument('--Name', type=str, default='SADGD_PINN')
+parser = argparse.ArgumentParser(description='SDGD_PINN Training')
+parser.add_argument('--Name', type=str, default='SDGD_PINN_ref')
 parser.add_argument('--SEED', type=int, default=0)
 parser.add_argument('--dim', type=int, default=10) # dimension of the problem.
 parser.add_argument('--dataset', type=str, default="Poisson")
@@ -16,8 +16,8 @@ parser.add_argument('--lr', type=float, default=1e-3) # Adam lr
 parser.add_argument('--PINN_h', type=int, default=128) # width of PINN
 parser.add_argument('--PINN_L', type=int, default=4) # depth of PINN
 parser.add_argument('--save_loss', type=bool, default=True) # save the optimization trajectory?
-parser.add_argument('--use_sch', type=int, default=1) # use scheduler?
-parser.add_argument('--N_f', type=int, default=int(100)) # num of residual points
+parser.add_argument('--use_sch', type=int, default=0) # use scheduler?
+parser.add_argument('--N_f', type=int, default=int(200)) # num of residual points
 parser.add_argument('--N_test', type=int, default=int(20000)) # num of test points
 parser.add_argument('--x_radius', type=float, default=1)
 parser.add_argument('--method', type=int, default=3)
@@ -81,8 +81,6 @@ class PINN:
         self.net_params_pinn = list(self.u_net.parameters())
         self.saved_loss = []
         self.saved_l2 = []
-        #self.saved_d2f_dxidxi = torch.zeros(args.dim,args.N_f).to(device)
-        #self.residual_pred = 0
 
     def Resample(self): # sample random points at the begining of each iteration
         N_f = args.N_f # Number of collocation points
@@ -139,7 +137,6 @@ class PINN:
         saeved_loss = loss
         return loss, saeved_loss
     
-    
     def Method3(self): #SDGD Algorithm 3
         x = self.xf
         x.requires_grad_()
@@ -156,16 +153,12 @@ class PINN:
         loss = residual_pred.square().mean()
         saeved_loss = loss
         return loss, saeved_loss
-    
-        
 
     def num_params(self):
         num_pinn = 0
         for p in self.net_params_pinn:
             num_pinn += len(p.reshape(-1))
         return num_pinn
-    
-
 
     def train_adam(self):
         optimizer = torch.optim.Adam(self.net_params_pinn, lr=self.adam_lr)
@@ -176,10 +169,7 @@ class PINN:
         print('Initialization: l2: %e, l1: %e'%(L2, L1))
         self.saved_loss.append(0)
         self.saved_l2.append([L2, L1])
-        
-        # Storage for averaged gradients
-        grad_avg = {name: torch.zeros_like(param) for name, param in self.u_net.named_parameters()}
-        momentum = 0.5  # Weight for previous gradients (like exponential moving average)
+    
         for n in tqdm(range(self.epoch)):
             self.Resample()
             if args.method == 0:
@@ -187,32 +177,11 @@ class PINN:
             elif args.method == 3:
                 loss, saved_loss = self.Method3()
             optimizer.zero_grad()
-            
-            #loss_sum += loss
-            loss.backward(retain_graph=True)
-            
-            
-            
-            # Average with previous gradients
-            with torch.no_grad():
-                for name, param in self.u_net.named_parameters():
-                    if param.grad is not None:
-                        # Update moving average of gradients
-                        grad_avg[name] = momentum * grad_avg[name] + (1 - momentum) * param.grad
-            
-                        # Replace current gradient with the averaged one
-                        param.grad.copy_(grad_avg[name])
-            
-            
+            loss.backward()
             optimizer.step()
-            
-            
             if args.use_sch:
                 scheduler.step()
             current_loss = saved_loss.item()
-            
-            
-            
             if n % 100 == 0:
                 L2, L1 = self.L2_pinn()
                 print('epoch %d, loss: %e, l2: %e, l1: %e'%(n, current_loss, L2, L1))

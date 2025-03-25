@@ -98,7 +98,7 @@ if __name__ == '__main__':
     parser.add_argument('--equation', type=str, default='klein_gordon3d', help='equation to solve')
     
     # input data settings
-    parser.add_argument('--nc', type=int, default=64, help='the number of input points for each axis')
+    parser.add_argument('--nc', type=int, default=16, help='the number of input points for each axis')
     parser.add_argument('--nc_test', type=int, default=100, help='the number of test points for each axis')
 
     # training settings

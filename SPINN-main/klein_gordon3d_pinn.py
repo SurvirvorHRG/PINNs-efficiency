@@ -24,9 +24,14 @@ def apply_model_spinn(apply_fn, params, *train_data):
         v_y = jnp.ones(y.shape)
         # 2nd derivatives of u
         utt = hvp_fwdfwd(lambda t: apply_fn(params, t, x, y), (t,), (v_t,))
-        uxx = hvp_fwdfwd(lambda x: apply_fn(params, t, x, y), (x,), (v_x,))
-        uyy = hvp_fwdfwd(lambda y: apply_fn(params, t, x, y), (y,), (v_y,))
-        return jnp.mean((utt - uxx - uyy + u**2 - source_term)**2)
+        sum = 0.
+        idx = np.random.choice(2, 1, replace=False)
+        if idx == 0:
+            sum += hvp_fwdfwd(lambda x: apply_fn(params, t, x, y), (x,), (v_x,))
+        else:
+            sum += hvp_fwdfwd(lambda y: apply_fn(params, t, x, y), (y,), (v_y,))
+
+        return jnp.mean((utt - sum + u**2 - source_term)**2)
 
     def initial_loss(params, t, x, y, u):
         return jnp.mean((apply_fn(params, t, x, y) - u)**2)
@@ -88,7 +93,7 @@ if __name__ == '__main__':
     parser.add_argument('--equation', type=str, default='klein_gordon3d', help='equation to solve')
     
     # input data settings
-    parser.add_argument('--nc', type=int, default=64, help='the number of input points for each axis')
+    parser.add_argument('--nc', type=int, default=16, help='the number of input points for each axis')
     parser.add_argument('--nc_test', type=int, default=100, help='the number of test points for each axis')
 
     # training settings
@@ -108,7 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('--k', type=int, default=2, help='temporal frequency of the solution')
     
     # log settings
-    parser.add_argument('--log_iter', type=int, default=100, help='print log every...')
+    parser.add_argument('--log_iter', type=int, default=1, help='print log every...')
     parser.add_argument('--plot_iter', type=int, default=25000, help='plot result every...')
 
     args = parser.parse_args()
@@ -172,7 +177,8 @@ if __name__ == '__main__':
         elif args.model == 'pinn':
             loss, gradient = apply_model_pinn(apply_fn, params, *train_data)
         params, state = update_model(optim, gradient, params, state)
-
+        
+        best_error = best
         if e % 10 == 0:
             if loss < best:
                 best = loss
