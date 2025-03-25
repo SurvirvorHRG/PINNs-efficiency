@@ -7,10 +7,9 @@ Through these approaches, we aim to develop more computationally efficient PINNs
 
 - [1] Zheyuan Hu, Khemraj Shukla, George Em Karniadakis, and Kenji Kawaguchi. Tackling the curseof dimensionality with physics-informed neural networks.Neural Networks, page 106369, 2024.
 - [2] Junwoo  Cho,  Seungtae  Nam,  Hyunmo  Yang,  Seok-Bae  Yun,  Youngjoon  Hong,  and  EunbyungPark.  Separable physics-informed neural networks.Advances in Neural Information ProcessingSystems, 2023.
-- [4] https://github.com/Blealtan/efficient-kan
 - [3] Khemraj  Shukla,  Juan  Diego  Toscano,  Zhicheng  Wang,  Zongren  Zou,  and  George  EmKarniadakis.  A comprehensive and fair comparison between mlp and kan representationsfor differential equations and operator networks, 2024
-- [5] https://github.com/KindXiaoming/pykan
-- [6] https://github.com/Blealtan/efficient-kan
+- [4] https://github.com/KindXiaoming/pykan
+- [5] https://github.com/Blealtan/efficient-kan
 
 
   ## Authors
